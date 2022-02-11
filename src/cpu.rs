@@ -1,14 +1,12 @@
-use core::panic;
-
 use crate::ram::Ram;
 
 pub const PROGRAM_START: u16 = 0x200;
 
-#[derive(Debug)]
 pub struct CPU {
     vx_register: [u8;16],
     i_register: u16,
     program_counter: u16,
+    previous_program_counter: u16,
 
 }
 
@@ -18,6 +16,7 @@ impl CPU {
             vx_register: [0; 16],
             i_register: 0,
             program_counter: PROGRAM_START,
+            previous_program_counter: 0,
         }
     }
 
@@ -29,18 +28,41 @@ impl CPU {
         println!("{:#X} , {:#X} , {:#X}", instruction, lo, hi);
 
         let nnn = instruction & 0x0FFF;
-        let nn = instruction & 0x0FF;
+        let nn = (instruction & 0x0FF) as u8;
         let n = instruction & 0x00F;
         let x = (instruction & 0x0F00) >> 8;
         let y = (instruction & 0x00F0) >> 4;
 
         println!("{:?} , {:?} , {:?} , {} , {}", nnn, nn, n, x, y);
 
+        if self.previous_program_counter == self.program_counter {
+            panic!("Increment!!!");
+        }
+        self.previous_program_counter = self.program_counter;
+
         match (instruction & 0xF000) >> 12 {
             0x1 => {
                 self.program_counter = nnn;
+            },
+            0x6 => {
+                self.write_vx_register(x, nn);
+                self.program_counter += 2;
+            },
+            0xA => {
+                self.i_register = nnn;
+                self.program_counter += 2;
+            },
+            0xD => {
+                
             }
             _ => panic!("Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
         }
+    }
+
+    pub fn write_vx_register(&mut self, address: u16, value: u8) {
+        self.vx_register[address as usize] = value;
+    }
+    pub fn read_vx_register(&mut self, address: u16) -> u8 {
+        self.vx_register[address as usize]
     }
 }
