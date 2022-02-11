@@ -1,12 +1,12 @@
 use crate::ram::Ram;
 
-pub struct CPU {
+pub struct Chip8 {
     ram: Ram,
 }
 
-impl CPU {
-    pub fn new() -> CPU {
-        CPU { ram: Ram::new() }
+impl Chip8 {
+    pub fn new() -> Chip8 {
+        Chip8 { ram: Ram::new() }
     }
 
     pub fn load_rom(&mut self, ROM: &Vec<u8>) {
@@ -15,4 +15,9 @@ impl CPU {
             self.ram.write_byte(offset + address as u16, *op_code);
         }
     }
+
+    pub fn run_instruction(&mut self) {
+        
+    }
+
 }

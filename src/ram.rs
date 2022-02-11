@@ -4,9 +4,11 @@ pub struct Ram {
 
 impl Ram {
     pub fn new() -> Ram {
-        let mut ram = Ram { capacity: [0; 4096] };
+        let mut ram = Ram {
+            capacity: [0; 4096],
+        };
 
-        let sprites: [[u8; 5]; 16] = [ 
+        let sprites: [[u8; 5]; 16] = [
             [0xF0, 0x90, 0x90, 0x90, 0xF0],
             [0x20, 0x60, 0x20, 0x20, 0x70],
             [0xF0, 0x10, 0xF0, 0x80, 0xF0],
@@ -24,12 +26,20 @@ impl Ram {
             [0xF0, 0x80, 0xF0, 0x80, 0xF0],
             [0xF0, 0x80, 0xF0, 0x80, 0x80],
         ];
-
+        let mut address = 0;
+        for sprite in sprites {
+            for hex in sprite {
+                ram.capacity[address] = hex;
+                address += 1;
+            }
+        }
         ram
     }
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
         self.capacity[address as usize] = value;
     }
-    pub fn read_byte(&mut self, address: u16, value: u8) {}
+    pub fn read_byte(&mut self, address: u16, value: u8) -> u8 {
+        self.capacity[address as usize]
+    }
 }
