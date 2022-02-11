@@ -53,7 +53,8 @@ impl CPU {
                 self.program_counter += 2;
             },
             0xD => {
-                
+                //Draw frame (will to later lol)
+                self.program_counter += 2;
             }
             _ => panic!("Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
         }
