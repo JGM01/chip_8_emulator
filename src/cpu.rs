@@ -1,7 +1,10 @@
+use core::panic;
+
 use crate::ram::Ram;
 
 pub const PROGRAM_START: u16 = 0x200;
 
+#[derive(Debug)]
 pub struct CPU {
     vx_register: [u8;16],
     i_register: u16,
@@ -24,11 +27,20 @@ impl CPU {
         let hi = memory.read_byte(self.program_counter+1) as u16;
         let instruction = (lo << 8) | hi;
         println!("{:#X} , {:#X} , {:#X}", instruction, lo, hi);
-        if hi == 0 && lo == 0 {
-            panic!();
-        }
-        //reads 2 bytes at a time
-        self.program_counter += 2;
-    }
 
+        let nnn = instruction & 0x0FFF;
+        let nn = instruction & 0x0FF;
+        let n = instruction & 0x00F;
+        let x = (instruction & 0x0F00) >> 8;
+        let y = (instruction & 0x00F0) >> 4;
+
+        println!("{:?} , {:?} , {:?} , {} , {}", nnn, nn, n, x, y);
+
+        match (instruction & 0xF000) >> 12 {
+            0x1 => {
+                self.program_counter = nnn;
+            }
+            _ => panic!("Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
+        }
+    }
 }
