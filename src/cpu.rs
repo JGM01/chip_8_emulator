@@ -5,5 +5,9 @@ struct CPU {
 }
 
 impl CPU {
-    
+    fn new() -> CPU {
+        CPU {
+            ram: Ram::new(),
+        }
+    }
 }
