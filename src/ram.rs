@@ -9,11 +9,6 @@ impl Ram {
         }
     }
 
-    pub fn write_byte(&mut self, address: u16, value: u8) {
-        
-    }
-    pub fn read_byte(&mut self, address: u16, value: u8) {
-        
-    }
-
+    pub fn write_byte(&mut self, address: u16, value: u8) {}
+    pub fn read_byte(&mut self, address: u16, value: u8) {}
 }
