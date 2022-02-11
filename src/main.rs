@@ -3,6 +3,7 @@ use std::{fs::File, io::Read};
 use chip8::Chip8;
 
 mod chip8;
+mod cpu;
 mod ram;
 
 fn main() {
