@@ -1,11 +1,11 @@
 pub struct Ram {
-    capacity: [u8; 4096],
+    memory: [u8; 4096],
 }
 
 impl Ram {
     pub fn new() -> Ram {
         let mut ram = Ram {
-            capacity: [0; 4096],
+            memory: [0; 4096],
         };
 
         let sprites: [[u8; 5]; 16] = [
@@ -29,7 +29,7 @@ impl Ram {
         let mut address = 0;
         for sprite in sprites {
             for hex in sprite {
-                ram.capacity[address] = hex;
+                ram.memory[address] = hex;
                 address += 1;
             }
         }
@@ -37,9 +37,9 @@ impl Ram {
     }
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
-        self.capacity[address as usize] = value;
+        self.memory[address as usize] = value;
     }
-    pub fn read_byte(&mut self, address: u16, value: u8) -> u8 {
-        self.capacity[address as usize]
+    pub fn read_byte(&mut self, address: u16) -> u8 {
+        self.memory[address as usize]
     }
 }

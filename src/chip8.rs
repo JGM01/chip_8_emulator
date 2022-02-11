@@ -16,7 +16,6 @@ impl Chip8 {
     }
 
     pub fn load_rom(&mut self, ROM: &Vec<u8>) {
-        let offset = 0x200;
         for (address, op_code) in ROM.iter().enumerate() {
             self.ram.write_byte(cpu::PROGRAM_START + (address as u16), *op_code);
         }

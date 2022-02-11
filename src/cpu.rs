@@ -18,8 +18,17 @@ impl CPU {
         }
     }
 
-    pub fn run_instruction(&mut self, capacity: &mut Ram){
+    pub fn run_instruction(&mut self, memory: &mut Ram){
 
+        let lo = memory.read_byte(self.program_counter) as u16;
+        let hi = memory.read_byte(self.program_counter+1) as u16;
+        let instruction = (lo << 8) | hi;
+        println!("{:#X} , {:#X} , {:#X}", instruction, lo, hi);
+        if hi == 0 && lo == 0 {
+            panic!();
+        }
+        //reads 2 bytes at a time
+        self.program_counter += 2;
     }
 
 }
