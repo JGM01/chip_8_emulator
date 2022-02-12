@@ -1,28 +1,28 @@
-use crate::ram::Ram;
-use crate::cpu::CPU;
 use crate::cpu;
+use crate::cpu::CPU;
+use crate::bus::Bus;
 
 pub struct Chip8 {
-    ram: Ram,
+    bus: Bus,
     cpu: CPU,
 }
 
 impl Chip8 {
     pub fn new() -> Chip8 {
-        Chip8 { 
-            ram: Ram::new(), 
+        Chip8 {
+            bus: Bus::new(),
             cpu: CPU::new(),
         }
     }
 
     pub fn load_rom(&mut self, ROM: &Vec<u8>) {
         for (address, op_code) in ROM.iter().enumerate() {
-            self.ram.write_byte(cpu::PROGRAM_START + (address as u16), *op_code);
+            self.bus
+                .ram_write_byte(cpu::PROGRAM_START + (address as u16), *op_code);
         }
     }
 
     pub fn run_instruction(&mut self) {
-        self.cpu.run_instruction(&mut self.ram);
+        self.cpu.run_instruction(&mut self.bus);
     }
-
 }

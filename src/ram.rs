@@ -4,9 +4,7 @@ pub struct Ram {
 
 impl Ram {
     pub fn new() -> Ram {
-        let mut ram = Ram {
-            memory: [0; 4096],
-        };
+        let mut ram = Ram { memory: [0; 4096] };
 
         let sprites: [[u8; 5]; 16] = [
             [0xF0, 0x90, 0x90, 0x90, 0xF0],

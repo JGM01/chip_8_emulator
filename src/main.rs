@@ -4,7 +4,10 @@ use chip8::Chip8;
 
 mod chip8;
 mod cpu;
+mod display;
+mod keyboard;
 mod ram;
+mod bus;
 
 fn main() {
     let mut file = File::open("data/INVADERS").unwrap();
