@@ -86,7 +86,12 @@ impl CPU {
             },
             0xE => {
                 match nn {
+                    0xA1 => {
+                        let key = self.read_vx_register(x);
+                    },
+                    0x9E => {
 
+                    },
                     _ => panic!("[0xEXNN] Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
                 };
             },
