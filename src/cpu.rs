@@ -85,16 +85,35 @@ impl CPU {
                 match n {
                     0 => {
                         self.write_vx_register(x, vy);
-                    }
+                    },
                     1 => {
                         self.write_vx_register(x, vx | vy);
-                    }
+                    },
                     2 => {
                         self.write_vx_register(x, vx & vy);
-                    }
+                    },
                     3 => {
                         self.write_vx_register(x, vx ^ vy);
-                    }
+                    },
+                    4 => {
+                        let sum: u16 = vx as u16 + vy as u16;
+                        self.write_vx_register(x, sum as u8);
+                        if sum < 0xFF {
+                            self.write_vx_register(0xF, 1);
+                        }
+                    },
+                    5 => {
+                        let difference: i8 =  vx as i8 - vy as i8;
+                        self.write_vx_register(x, difference as u8);
+                        if difference < 0 {
+                            self.write_vx_register(0xF, 1);
+                        }
+                    },
+                    6 => {
+                        self.write_vx_register(0xF,vy & 0x1);
+                        self.write_vx_register(y,vy >> 1);
+                        self.write_vx_register(x,vy >> 1);
+                    },
                     _ => panic!(
                         "[0x8XYN] Unrecognizable! {:#X} , {:#X}",
                         self.program_counter, instruction
