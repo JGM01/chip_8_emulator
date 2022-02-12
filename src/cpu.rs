@@ -48,12 +48,22 @@ impl CPU {
                 self.write_vx_register(x, nn);
                 self.program_counter += 2;
             },
+            0x7 => {
+                let vx = self.read_vx_register(x);
+                self.write_vx_register(x, vx.wrapping_add(nn));
+                self.program_counter += 2;
+            },
             0xA => {
                 self.i_register = nnn;
                 self.program_counter += 2;
             },
             0xD => {
                 //Draw frame (will to later lol)
+                self.program_counter += 2;
+            },
+            0xF => {
+                let vx = self.read_vx_register(x);
+                self.i_register += vx as u16;
                 self.program_counter += 2;
             }
             _ => panic!("Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
