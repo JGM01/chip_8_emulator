@@ -44,6 +44,14 @@ impl CPU {
             0x1 => {
                 self.program_counter = nnn;
             },
+            0x3 => {
+                let vx = self.read_vx_register(x);
+                if vx == nn {
+                    self.program_counter += 4;
+                } else {
+                    self.program_counter += 2;
+                }
+            }
             0x6 => {
                 self.write_vx_register(x, nn);
                 self.program_counter += 2;
