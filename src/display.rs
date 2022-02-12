@@ -14,10 +14,11 @@ impl Display {
 
     pub fn debug_draw_byte(&mut self, byte: u8, x: u8, y: u8) -> bool{
         let mut flipped = false;
+        let mut x_coord = x as usize;
+        let y_coord = y as usize;
+        let mut b = byte;
+
         for _ in 0..8 {
-            let mut b = byte;
-            let x_coord = x as usize;
-            let y_coord = y as usize;
             match (b & 0b1000_0000) >> 7 {
                 0 => {
                     if self.screen[x_coord][y_coord] == 1 {
@@ -28,6 +29,7 @@ impl Display {
                 1 => self.screen[x_coord][y_coord] = 1,
                 _ => unreachable!(),
             }
+            x_coord += 1;
             b = b << 1;
         }
         self.present();
