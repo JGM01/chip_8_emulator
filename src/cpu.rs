@@ -7,7 +7,7 @@ pub struct CPU {
     i_register: u16,
     program_counter: u16,
     previous_program_counter: u16,
-
+    return_stack: Vec<u16>,
 }
 
 impl CPU {
@@ -17,6 +17,7 @@ impl CPU {
             i_register: 0,
             program_counter: PROGRAM_START,
             previous_program_counter: 0,
+            return_stack: Vec::<u16>::new(),
         }
     }
 
@@ -44,6 +45,10 @@ impl CPU {
             0x1 => {
                 self.program_counter = nnn;
             },
+            0x2 => {
+                self.return_stack.push(self.program_counter + 2);
+                self.program_counter = nnn;
+            },
             0x3 => {
                 let vx = self.read_vx_register(x);
                 if vx == nn {
@@ -51,7 +56,7 @@ impl CPU {
                 } else {
                     self.program_counter += 2;
                 }
-            }
+            },
             0x6 => {
                 self.write_vx_register(x, nn);
                 self.program_counter += 2;
@@ -60,6 +65,9 @@ impl CPU {
                 let vx = self.read_vx_register(x);
                 self.write_vx_register(x, vx.wrapping_add(nn));
                 self.program_counter += 2;
+            },
+            0x8 => {
+                
             },
             0xA => {
                 self.i_register = nnn;
