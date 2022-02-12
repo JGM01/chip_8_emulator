@@ -67,7 +67,14 @@ impl CPU {
                 self.program_counter += 2;
             },
             0x8 => {
-                
+                match n {
+                    0 => {
+                        let vy = self.read_vx_register(y);
+                        self.write_vx_register(x, vy);
+                        self.program_counter += 2;
+                    },
+                    _ => panic!("[0x8XYN] Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
+                };
             },
             0xA => {
                 self.i_register = nnn;
@@ -77,12 +84,18 @@ impl CPU {
                 //Draw frame (will to later lol)
                 self.program_counter += 2;
             },
+            0xE => {
+                match nn {
+
+                    _ => panic!("[0xEXNN] Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
+                };
+            },
             0xF => {
                 let vx = self.read_vx_register(x);
                 self.i_register += vx as u16;
                 self.program_counter += 2;
             }
-            _ => panic!("Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
+            _ => panic!("[0xNNNN] Unrecognizable! {:#X} , {:#X}", self.program_counter, instruction)
         }
     }
 
