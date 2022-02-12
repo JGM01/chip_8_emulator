@@ -41,6 +41,20 @@ impl CPU {
         self.previous_program_counter = self.program_counter;
 
         match (instruction & 0xF000) >> 12 {
+            0x0 => match nn {
+                0xE0 => {
+                    bus.clear_screen();
+                    self.program_counter += 2;
+                }
+                0xEE => {
+                    let subroutine_return = self.return_stack.pop().unwrap();
+                    self.program_counter = subroutine_return;
+                }
+                _ => panic!(
+                    "[0x0NN] Unrecognizable! {:#X} , {:#X}",
+                    self.program_counter, instruction
+                ),
+            },
             0x1 => {
                 self.program_counter = nnn;
             }
@@ -66,17 +80,27 @@ impl CPU {
                 self.program_counter += 2;
             }
             0x8 => {
+                let vx = self.read_vx_register(x);
+                let vy = self.read_vx_register(y);
                 match n {
                     0 => {
-                        let vy = self.read_vx_register(y);
                         self.write_vx_register(x, vy);
-                        self.program_counter += 2;
+                    }
+                    1 => {
+                        self.write_vx_register(x, vx | vy);
+                    }
+                    2 => {
+                        self.write_vx_register(x, vx & vy);
+                    }
+                    3 => {
+                        self.write_vx_register(x, vx ^ vy);
                     }
                     _ => panic!(
                         "[0x8XYN] Unrecognizable! {:#X} , {:#X}",
                         self.program_counter, instruction
                     ),
                 };
+                self.program_counter += 2;
             }
             0xA => {
                 self.i_register = nnn;
@@ -117,21 +141,19 @@ impl CPU {
     }
 
     fn debug_draw_sprite(&mut self, bus: &mut Bus, x: u8, y: u8, height: u8) {
-        let mut y_coord = y;
         let mut should_set_vx = false;
         for y in 0..height {
-            let b = bus.ram_read_byte(self.i_register + y_coord as u16);
-             if bus.debug_draw_byte(b, x, y_coord) {
-                 should_set_vx = true;
-             }
-            y_coord += 1
+            let b = bus.ram_read_byte(self.i_register + y as u16);
+            if bus.debug_draw_byte(b, x, y) {
+                should_set_vx = true;
+            }
         }
-        print!("\n");
         if should_set_vx {
             self.write_vx_register(0xF, 0);
         } else {
             self.write_vx_register(0xF, 0);
         }
+        bus.present_screen();
     }
 
     pub fn write_vx_register(&mut self, address: u8, value: u8) {

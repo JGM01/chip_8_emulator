@@ -32,11 +32,18 @@ impl Display {
             x_coord += 1;
             b = b << 1;
         }
-        self.present();
         flipped
     }
 
-    fn present(&self) {
+    pub fn clear(&mut self) {
+        for y in 0..HEIGHT {
+            for x in 0..WIDTH {
+                self.screen[y][x] == 0;
+            }
+        }
+    }
+
+    pub fn present(&self) {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
                 if self.screen[y][x] == 0 {
