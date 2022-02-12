@@ -21,12 +21,12 @@ impl Display {
         for _ in 0..8 {
             match (b & 0b1000_0000) >> 7 {
                 0 => {
-                    if self.screen[x_coord][y_coord] == 1 {
+                    if self.screen[y_coord][x_coord] == 1 {
                         flipped = true;
                     }
-                    self.screen[x_coord][y_coord] = 0;
+                    self.screen[y_coord][x_coord] = 0;
                 },
-                1 => self.screen[x_coord][y_coord] = 1,
+                1 => self.screen[y_coord][x_coord] = 1,
                 _ => unreachable!(),
             }
             x_coord += 1;
@@ -39,7 +39,7 @@ impl Display {
     fn present(&self) {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                if self.screen[x][y] == 0 {
+                if self.screen[y][x] == 0 {
                     print!("_");
                 } else {
                     print!("#");
