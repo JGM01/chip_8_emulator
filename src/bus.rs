@@ -24,7 +24,11 @@ impl Bus {
         self.ram.write_byte(address, value)
     }
 
-    pub fn debug_draw_byte(&self, byte: u8, x: u8, y: u8) {
+    pub fn debug_draw_byte(&mut self, byte: u8, x: u8, y: u8) -> bool {
         self.display.debug_draw_byte(byte, x, y)
+    }
+
+    pub fn key_press(&self, key_code: u8) -> bool {
+        self.keyboard.key_pressed(key_code)
     }
 }

@@ -91,6 +91,11 @@ impl CPU {
                 match nn {
                     0xA1 => {
                         let key = self.read_vx_register(x);
+                        if bus.key_press(key) {
+                            self.program_counter += 2;
+                        } else {
+                            self.program_counter += 4;
+                        }
                     }
                     0x9E => {}
                     _ => panic!(
@@ -111,12 +116,22 @@ impl CPU {
         }
     }
 
-    fn debug_draw_sprite(&self, bus: &mut Bus, x: u8, y: u8, height: u8) {
+    fn debug_draw_sprite(&mut self, bus: &mut Bus, x: u8, y: u8, height: u8) {
+        let mut y_coord = y;
+        let mut should_set_vx = false;
         for y in 0..height {
-            let mut b = bus.ram_read_byte(self.i_register + y as u16);
-            bus.debug_draw_byte(b, x, y);
+            let b = bus.ram_read_byte(self.i_register + y_coord as u16);
+             if bus.debug_draw_byte(b, x, y_coord) {
+                 should_set_vx = true;
+             }
+            y_coord += 1
         }
         print!("\n");
+        if should_set_vx {
+            self.write_vx_register(0xF, 0);
+        } else {
+            self.write_vx_register(0xF, 0);
+        }
     }
 
     pub fn write_vx_register(&mut self, address: u8, value: u8) {
