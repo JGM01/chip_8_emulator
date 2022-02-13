@@ -1,3 +1,5 @@
+extern crate minifb;
+
 use std::{fs::File, io::Read};
 
 use chip8::Chip8;

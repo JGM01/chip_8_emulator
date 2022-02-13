@@ -143,9 +143,14 @@ impl CPU {
                 self.program_counter += 2;
             }
             0xD => {
+                let vx = self.read_vx_register(x);
+                let vy = self.read_vx_register(y);
                 //Draw frame (will to later lol)
-                self.debug_draw_sprite(bus, x, y, n);
+                self.debug_draw_sprite(bus, vx, vy, n);
                 self.program_counter += 2;
+                //if x!=0 && y != 1 {
+                //    panic!()
+                //}
             }
             0xE => {
                 let key = self.read_vx_register(x);
@@ -173,8 +178,8 @@ impl CPU {
             0xF => {
                 match nn {
                     0x0A => {
-
-                    },
+                        
+                    }
                     0x07 => {
                         self.write_vx_register(x, bus.get_delay_timer());
                         self.program_counter += 2;
@@ -223,7 +228,7 @@ impl CPU {
         } else {
             self.write_vx_register(0xF, 0);
         }
-        //bus.present_screen();
+        bus.present_screen();
     }
 
     pub fn write_vx_register(&mut self, address: u8, value: u8) {

@@ -1,5 +1,5 @@
 const WIDTH: usize = 64;
-const HEIGHT: usize = 64;
+const HEIGHT: usize = 32;
 
 pub struct Display {
     screen: [[u8; WIDTH]; HEIGHT],
@@ -38,7 +38,7 @@ impl Display {
     pub fn clear(&mut self) {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                self.screen[y][x] == 0;
+                self.screen[y][x] = 0;
             }
         }
     }
