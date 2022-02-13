@@ -25,7 +25,7 @@ impl CPU {
         let lo = bus.ram_read_byte(self.program_counter) as u16;
         let hi = bus.ram_read_byte(self.program_counter + 1) as u16;
         let instruction = (lo << 8) | hi;
-        println!("{:#X} , {:#X} , {:#X}", instruction, lo, hi);
+        println!("{:#X} , {:#X} , {:#X} , {:#X}",self.program_counter, instruction, lo, hi);
 
         let nnn = instruction & 0x0FFF;
         let nn = (instruction & 0x0FF) as u8;
@@ -70,6 +70,23 @@ impl CPU {
                     self.program_counter += 2;
                 }
             }
+            0x4 => {
+                let vx = self.read_vx_register(x);
+                if vx != nn {
+                    self.program_counter += 4;
+                } else {
+                    self.program_counter += 2;
+                }
+            }
+            0x5 => {
+                let vx = self.read_vx_register(x);
+                let vy = self.read_vx_register(y);
+                if vx == vy {
+                    self.program_counter += 4;
+                } else {
+                    self.program_counter += 2;
+                }
+            }
             0x6 => {
                 self.write_vx_register(x, nn);
                 self.program_counter += 2;
@@ -83,33 +100,33 @@ impl CPU {
                 let vx = self.read_vx_register(x);
                 let vy = self.read_vx_register(y);
                 match n {
-                    0 => {
+                    0x0 => {
                         self.write_vx_register(x, vy);
                     },
-                    1 => {
+                    0x1 => {
                         self.write_vx_register(x, vx | vy);
                     },
-                    2 => {
+                    0x2 => {
                         self.write_vx_register(x, vx & vy);
                     },
-                    3 => {
+                    0x3 => {
                         self.write_vx_register(x, vx ^ vy);
                     },
-                    4 => {
+                    0x4 => {
                         let sum: u16 = vx as u16 + vy as u16;
                         self.write_vx_register(x, sum as u8);
                         if sum < 0xFF {
                             self.write_vx_register(0xF, 1);
                         }
                     },
-                    5 => {
+                    0x5 => {
                         let difference: i8 =  vx as i8 - vy as i8;
                         self.write_vx_register(x, difference as u8);
                         if difference < 0 {
                             self.write_vx_register(0xF, 1);
                         }
                     },
-                    6 => {
+                    0x6 => {
                         self.write_vx_register(0xF,vy & 0x1);
                         self.write_vx_register(y,vy >> 1);
                         self.write_vx_register(x,vy >> 1);
@@ -131,16 +148,22 @@ impl CPU {
                 self.program_counter += 2;
             }
             0xE => {
+                let key = self.read_vx_register(x);
                 match nn {
                     0xA1 => {
-                        let key = self.read_vx_register(x);
                         if bus.key_press(key) {
                             self.program_counter += 2;
                         } else {
                             self.program_counter += 4;
                         }
                     }
-                    0x9E => {}
+                    0x9E => {
+                        if bus.key_press(key) {
+                            self.program_counter += 4;
+                        } else {
+                            self.program_counter += 2;
+                        }
+                    }
                     _ => panic!(
                         "[0xEXNN] Unrecognizable! {:#X} , {:#X}",
                         self.program_counter, instruction
@@ -148,9 +171,37 @@ impl CPU {
                 };
             }
             0xF => {
-                let vx = self.read_vx_register(x);
-                self.i_register += vx as u16;
-                self.program_counter += 2;
+                match nn {
+                    0x0A => {
+
+                    },
+                    0x07 => {
+                        self.write_vx_register(x, bus.get_delay_timer());
+                        self.program_counter += 2;
+                    },
+                    0x15 => {
+                        bus.set_delay_timer(self.read_vx_register(x));
+                        self.program_counter += 2;
+                    },
+                    0x65 => {
+                        for address in 0..x+1 {
+                            let value = bus.ram_read_byte(address as u16 + self.i_register);
+                            self.write_vx_register(address, value);
+                        }
+                        self.i_register += x as u16 + 1;
+                        self.program_counter += 2;
+                    },
+                    0x1E => {
+                        let vx = self.read_vx_register(x);
+                        self.i_register += vx as u16;
+                        self.program_counter += 2;
+                    }
+                    _ => panic!(
+                        "[0xFXNN] Unrecognizable! {:#X} , {:#X}",
+                        self.program_counter, instruction
+                    ),
+                };
+
             }
             _ => panic!(
                 "[0xNNNN] Unrecognizable! {:#X} , {:#X}",
@@ -160,19 +211,19 @@ impl CPU {
     }
 
     fn debug_draw_sprite(&mut self, bus: &mut Bus, x: u8, y: u8, height: u8) {
-        let mut should_set_vx = false;
+        let mut should_set_vf = false;
         for y in 0..height {
             let b = bus.ram_read_byte(self.i_register + y as u16);
             if bus.debug_draw_byte(b, x, y) {
-                should_set_vx = true;
+                should_set_vf = true;
             }
         }
-        if should_set_vx {
+        if should_set_vf {
             self.write_vx_register(0xF, 0);
         } else {
             self.write_vx_register(0xF, 0);
         }
-        bus.present_screen();
+        //bus.present_screen();
     }
 
     pub fn write_vx_register(&mut self, address: u8, value: u8) {
