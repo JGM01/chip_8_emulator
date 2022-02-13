@@ -3,7 +3,7 @@ use std::time;
 use crate::display::Display;
 use crate::keyboard::Keyboard;
 use crate::ram::Ram;
-use minifb::Window;
+
 
 pub struct Bus {
     ram: Ram,
@@ -48,20 +48,38 @@ impl Bus {
         self.keyboard.get_key_pressed()
     }
 
+    pub fn set_key_pressed(&mut self, key: Option<u8>) {
+        self.keyboard.set_key_pressed(key);
+    } 
+
     pub fn set_delay_timer(&mut self, value: u8) {
+        self.delay_timer_set_time = time::Instant::now();
         self.delay_timer = value;
     }
 
-    pub fn tick(&mut self) {
-        if self.delay_timer > 0 {
-            self.delay_timer -= 1;
+    pub fn get_delay_timer(&self) -> u8 {
+        let diff = time::Instant::now() - self.delay_timer_set_time;
+        let ms = diff.get_millis();
+        let ticks = ms / 16;
+        if ticks >= self.delay_timer as u64 {
+            0
+        } else {
+            self.delay_timer - ticks as u8
         }
     }
 
-    pub fn get_delay_timer(&self) -> u8 {
-        self.delay_timer
-    }
     pub fn get_display_buffer(&self) -> &[u8] {
         self.display.get_display_buffer()
+    }
+}
+trait Milliseconds {
+    fn get_millis(&self) -> u64;
+}
+
+impl Milliseconds for time::Duration {
+    fn get_millis(&self) -> u64 {
+        let nanos = self.subsec_nanos() as u64;
+        let ms = (1000*1000*1000 * self.as_secs() + nanos)/(1000 * 1000);
+        ms
     }
 }
