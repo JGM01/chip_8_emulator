@@ -279,18 +279,17 @@ impl CPU {
 
     fn debug_draw_sprite(&mut self, bus: &mut Bus, x: u8, y: u8, height: u8) {
         let mut should_set_vf = false;
-        for y in 0..height {
-            let b = bus.ram_read_byte(self.i_register + y as u16);
-            if bus.debug_draw_byte(b, x, y) {
+        for sprite_y in 0..height {
+            let b = bus.ram_read_byte(self.i_register + sprite_y as u16);
+            if bus.debug_draw_byte(b, x, y + sprite_y) {
                 should_set_vf = true;
             }
         }
         if should_set_vf {
-            self.write_vx_register(0xF, 0);
+            self.write_vx_register(0xF, 1);
         } else {
             self.write_vx_register(0xF, 0);
         }
-        bus.present_screen();
     }
 
     pub fn write_vx_register(&mut self, address: u8, value: u8) {

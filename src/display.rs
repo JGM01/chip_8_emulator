@@ -18,48 +18,32 @@ impl Display {
 
     pub fn debug_draw_byte(&mut self, byte: u8, x: u8, y: u8) -> bool{
 
-        let mut flipped = false;
+        let mut erased = false;
         let mut x_coord = x as usize;
-        let y_coord = y as usize;
+        let mut y_coord = y as usize;
         let mut b = byte;
 
-        for _ in 0..8 {
-            let index = Display::get_index_from_coords(x_coord,y_coord);
-            match (b & 0b1000_0000) >> 7 {
-                0 => {
-                    if self.screen[index] == 1 {
-                        flipped = true;
-                    }
-                    self.screen[index] = 0;
-                },
-                1 => self.screen[index] = 1,
-                _ => unreachable!(),
+        for _ in 0..8 { 
+            x_coord %= WIDTH;
+            y_coord %= HEIGHT;
+            let index = Display::get_index_from_coords(x_coord, y_coord);
+            let bit = (b & 0b1000_0000) >> 7;
+            let prev_value = self.screen[index];
+            self.screen[index] ^= bit;
+            if prev_value == 1 && self.screen[index] == 0 {
+                erased = true;
             }
+
             x_coord += 1;
-            b = b << 1;
+            b <<= 1;
         }
-        flipped
+        erased
     }
 
     pub fn clear(&mut self) {
         for pixel in self.screen.iter_mut() {
             *pixel = 0;
         }
-    }
-
-    pub fn present(&self) {
-        for address in 0..self.screen.len() {
-            let pixel = self.screen[address];
-            if address%WIDTH == 0 {
-                print!("\n");
-            }
-            match pixel {
-                0 => print!("_"),
-                1 => print!("*"),
-                _ => unreachable!()
-            };
-        }
-        print!("\n")
     }
     pub fn get_display_buffer(&self) -> &[u8] {
         &self.screen
