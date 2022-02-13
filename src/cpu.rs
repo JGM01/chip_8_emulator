@@ -1,4 +1,7 @@
+use rand::Rng;
+
 use crate::bus::Bus;
+extern crate rand;
 
 pub const PROGRAM_START: u16 = 0x200;
 
@@ -8,6 +11,7 @@ pub struct CPU {
     program_counter: u16,
     previous_program_counter: u16,
     return_stack: Vec<u16>,
+    rng: rand::rngs::ThreadRng,
 }
 
 impl CPU {
@@ -18,6 +22,7 @@ impl CPU {
             program_counter: PROGRAM_START,
             previous_program_counter: 0,
             return_stack: Vec::<u16>::new(),
+            rng: rand::thread_rng(),
         }
     }
 
@@ -131,6 +136,19 @@ impl CPU {
                         self.write_vx_register(y,vy >> 1);
                         self.write_vx_register(x,vy >> 1);
                     },
+                    0x7 => {
+                        let  difference: i8 = vy as i8 - vx as i8;
+                        self.write_vx_register(x, difference as u8);
+                        if difference < 0 {
+                            self.write_vx_register(0xF, 1);
+                        } else {
+                            self.write_vx_register(0xF, 0);
+                        }
+                    },
+                    0xE => {
+                        self.write_vx_register(0xF, (vx & 0x80) >> 7);
+                        self.write_vx_register(x, vx << 1);
+                    }
                     _ => panic!(
                         "[0x8XYN] Unrecognizable! {:#X} , {:#X}",
                         self.program_counter, instruction
@@ -138,8 +156,26 @@ impl CPU {
                 };
                 self.program_counter += 2;
             }
+            0x9 => {
+                let vx = self.read_vx_register(x);
+                let vy = self.read_vx_register(y);
+                if vx != vy {
+                    self.program_counter += 4;
+                } else {
+                    self.program_counter += 2;
+                }
+            }
             0xA => {
                 self.i_register = nnn;
+                self.program_counter += 2;
+            }
+            0xB => {
+                self.program_counter = self.read_vx_register(0) as u16 + nnn;
+            }
+            0xC => {
+                let num: u8 = rand::thread_rng().gen();
+                let num = num*0xFF;
+                self.write_vx_register(x, num & nn);
                 self.program_counter += 2;
             }
             0xD => {
@@ -156,14 +192,14 @@ impl CPU {
                 let key = self.read_vx_register(x);
                 match nn {
                     0xA1 => {
-                        if bus.key_press(key) {
+                        if bus.is_key_pressed(key) {
                             self.program_counter += 2;
                         } else {
                             self.program_counter += 4;
                         }
                     }
                     0x9E => {
-                        if bus.key_press(key) {
+                        if bus.is_key_pressed(key) {
                             self.program_counter += 4;
                         } else {
                             self.program_counter += 2;
@@ -178,7 +214,10 @@ impl CPU {
             0xF => {
                 match nn {
                     0x0A => {
-                        
+                        if let Some(key) = bus.get_key_pressed() {
+                            self.write_vx_register(x, key);
+                            self.program_counter += 2;
+                        }
                     }
                     0x07 => {
                         self.write_vx_register(x, bus.get_delay_timer());
@@ -188,6 +227,29 @@ impl CPU {
                         bus.set_delay_timer(self.read_vx_register(x));
                         self.program_counter += 2;
                     },
+                    0x18 => {
+                        //sound
+                        self.program_counter += 2;
+                    }
+                    0x29 => {
+                        self.i_register = self.read_vx_register(x) as u16 * 5;
+                        self.program_counter += 2;
+                    }
+                    0x33 => {
+                        let vx = self.read_vx_register(x);
+                        bus.ram_write_byte(self.i_register, vx/100);
+                        bus.ram_write_byte(self.i_register + 1, (vx%100)/10);
+                        bus.ram_write_byte(self.i_register + 2, vx%100);
+                        self.program_counter += 2;
+                    }
+                    0x55 => {
+                        for index in 0..x + 1 {
+                            let value = self.read_vx_register(index);
+                            bus.ram_write_byte(self.i_register + index as u16, value);
+                        }
+                        self.i_register += x as u16 + 1;
+                        self.program_counter += 2;
+                    }
                     0x65 => {
                         for address in 0..x+1 {
                             let value = bus.ram_read_byte(address as u16 + self.i_register);

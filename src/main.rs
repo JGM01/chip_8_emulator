@@ -1,10 +1,13 @@
 extern crate minifb;
+extern crate rand;
 
-use std::{fs::File, io::Read};
-
+use minifb::{Key, KeyRepeat, Window, WindowOptions};
+use std::fs::File;
+use std::io::Read;
 use chip8::Chip8;
-use minifb::{Window, WindowOptions};
 use display::Display;
+use std::time::{Duration, Instant};
+use std::env;
 
 mod chip8;
 mod cpu;
@@ -18,8 +21,6 @@ fn main() {
     let mut data = Vec::<u8>::new();
     file.read_to_end(&mut data);
 
-    let mut chip8 = Chip8::new();
-    chip8.load_rom(&data);
 
 
     let WIDTH = 640;
@@ -31,6 +32,10 @@ fn main() {
     }
     
     let mut window = Window::new("Chip-8", WIDTH, HEIGHT, WindowOptions::default()).unwrap_or_else(|e| {panic!("{}", e);});
+
+    let mut chip8 = Chip8::new();
+    chip8.load_rom(&data);
+
     
     while(window.is_open()) {
         

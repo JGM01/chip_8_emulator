@@ -1,12 +1,16 @@
+use std::time;
+
 use crate::display::Display;
 use crate::keyboard::Keyboard;
 use crate::ram::Ram;
+use minifb::Window;
 
 pub struct Bus {
     ram: Ram,
     keyboard: Keyboard,
     display: Display,
     delay_timer: u8,
+    delay_timer_set_time: time::Instant,
 }
 
 impl Bus {
@@ -16,6 +20,7 @@ impl Bus {
             keyboard: Keyboard::new(),
             display: Display::new(),
             delay_timer: 0,
+            delay_timer_set_time: time::Instant::now(),
         }
     }
 
@@ -39,8 +44,12 @@ impl Bus {
         self.display.clear()
     }
 
-    pub fn key_press(&self, key_code: u8) -> bool {
-        self.keyboard.key_pressed(key_code)
+    pub fn is_key_pressed(&self, key_code: u8) -> bool {
+        self.keyboard.is_key_pressed(key_code)
+    }
+
+    pub fn get_key_pressed(&self) -> Option<u8> {
+        self.keyboard.get_key_pressed()
     }
 
     pub fn set_delay_timer(&mut self, value: u8) {
@@ -54,7 +63,7 @@ impl Bus {
     }
 
     pub fn get_delay_timer(&self) -> u8 {
-        self.delay_timer 
+        self.delay_timer
     }
     pub fn get_display_buffer(&self) -> &[u8] {
         self.display.get_display_buffer()
