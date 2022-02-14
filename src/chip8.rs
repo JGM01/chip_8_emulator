@@ -1,7 +1,7 @@
 use crate::cpu;
 use crate::cpu::CPU;
 use crate::bus::Bus;
-use minifb::Window;
+
 
 pub struct Chip8 {
     bus: Bus,

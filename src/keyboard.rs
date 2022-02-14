@@ -18,7 +18,7 @@ impl Keyboard {
     }
 
     pub fn set_key_pressed(&mut self, key: Option<u8>) {
-        self.key_pressed = key
+        self.key_pressed = key;
     }
     pub fn get_key_pressed(&self) -> Option<u8> {
         self.key_pressed

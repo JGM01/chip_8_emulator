@@ -174,8 +174,8 @@ impl CPU {
             }
             0xC => {
                 let num: u8 = rand::thread_rng().gen();
-                let num = num*0xFF;
-                self.write_vx_register(x, num & nn);
+                let newnum: u16 = (num as u16)*0xFF;
+                self.write_vx_register(x, newnum as u8 & nn);
                 self.program_counter += 2;
             }
             0xD => {

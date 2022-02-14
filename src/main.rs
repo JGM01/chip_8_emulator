@@ -1,20 +1,20 @@
 extern crate minifb;
 extern crate rand;
 
-use minifb::{Key, KeyRepeat, Window, WindowOptions};
-use std::fs::File;
-use std::io::Read;
 use chip8::Chip8;
 use display::Display;
-use std::time::{Duration, Instant};
-use std::env;
+use minifb::{Key, KeyRepeat, Window, WindowOptions};
 
+use std::fs::File;
+use std::io::Read;
+use std::time::{Duration, Instant};
+
+mod bus;
 mod chip8;
 mod cpu;
 mod display;
 mod keyboard;
 mod ram;
-mod bus;
 
 fn get_chip8_keycode_for(key: Option<Key>) -> Option<u8> {
     match key {
@@ -42,45 +42,69 @@ fn get_chip8_keycode_for(key: Option<Key>) -> Option<u8> {
 }
 
 fn main() {
-    let mut file = File::open("data/INVADERS").unwrap();
+    let mut file = File::open("data/PONG").unwrap();
     let mut data = Vec::<u8>::new();
     file.read_to_end(&mut data);
-
-
 
     let WIDTH = 640;
     let HEIGHT = 320;
 
-    let mut buffer : Vec<u32> = vec![0; WIDTH*HEIGHT];
+    let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
     for i in buffer.iter_mut() {
         *i = 0xFFF;
     }
-    
-    let mut window = Window::new("Chip-8", WIDTH, HEIGHT, WindowOptions::default()).unwrap_or_else(|e| {panic!("{}", e);});
+
+    let mut window =
+        Window::new("Chip-8", WIDTH, HEIGHT, WindowOptions::default()).unwrap_or_else(|e| {
+            panic!("{}", e);
+        });
 
     let mut chip8 = Chip8::new();
     chip8.load_rom(&data);
 
-    
-    while(window.is_open()) {
-        
-        chip8.run_instruction();
-        let chip8_buffer = chip8.get_display_buffer();
+    let mut last_key_update_time = Instant::now();
+    let mut last_instruction_run_time = Instant::now();
+    let mut last_display_time = Instant::now();
 
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                let index = Display::get_index_from_coords(x/10 , y/10);
-                let pixel = chip8_buffer[index];
-                let color_pixel = match pixel {
-                    0 => 0x0,
-                    1 => 0xFFFFFF,
-                    _ => unreachable!(),
-                };
-                buffer[y * WIDTH + x] = color_pixel;
-            }
+    while window.is_open() && !window.is_key_down(Key::Escape) {
+        let keys_pressed: Option<Vec<Key>> = Some(window.get_keys_pressed(KeyRepeat::Yes));
+        let key = match keys_pressed {
+            Some(keys) => if !keys.is_empty() {
+                    Some(keys[0])
+                } else {
+                    None
+                }
+            None => None,
+        };
+
+        let chip8_key = get_chip8_keycode_for(key);
+        if chip8_key.is_some()
+            || Instant::now() - last_key_update_time >= Duration::from_millis(200)
+        {
+            last_key_update_time = Instant::now();
+            chip8.set_key_pressed(chip8_key);
         }
+        if Instant::now() - last_instruction_run_time > Duration::from_millis(2) {
+            chip8.run_instruction();
+            last_instruction_run_time = Instant::now();
+        }
+        if Instant::now() - last_display_time > Duration::from_millis(10) {
+            let chip8_buffer = chip8.get_display_buffer();
 
-        window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
+            for y in 0..HEIGHT {
+                for x in 0..WIDTH {
+                    let index = Display::get_index_from_coords(x / 10, y / 10);
+                    let pixel = chip8_buffer[index];
+                    let color_pixel = match pixel {
+                        0 => 0x000000,
+                        1 => 0xFFFFFF,
+                        _ => unreachable!(),
+                    };
+                    buffer[y * WIDTH + x] = color_pixel;
+                }
+            }
+
+            window.update_with_buffer(&buffer, WIDTH, HEIGHT).unwrap();
+        }
     }
-
 }
